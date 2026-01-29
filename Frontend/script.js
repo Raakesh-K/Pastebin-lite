@@ -3,7 +3,9 @@ async function createPaste() {
   const ttl = document.getElementById("ttl").value;
   const views = document.getElementById("views").value;
 
-  const res = await fetch(`/api/pastes`, {   // ✅ no process.env
+  const BASE_URL = window.location.origin;
+
+  const res = await fetch(`${BASE_URL}/api/pastes`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -17,8 +19,12 @@ async function createPaste() {
   const result = document.getElementById("result");
 
   if (data.url) {
-    result.innerHTML = `<a href="${data.url}" target="_blank">${data.url}</a>`;
+    result.innerHTML = `
+      <a href="${data.url}" target="_blank" style="color:#00ffc8; font-weight:bold;">
+        ${data.url}
+      </a>
+    `;
   } else {
-    result.innerText = data.error;
+    result.innerText = data.error || "Failed to create paste";
   }
 }
