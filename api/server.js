@@ -46,7 +46,7 @@ app.post("/api/pastes", async (req, res) => {
 
    res.json({ id, url: `/p/${id}` });
 
-   
+
 
   } catch (err) {
     console.error("CREATE PASTE ERROR:", err);  // 👈 LOGS REAL DB ERROR
@@ -103,6 +103,25 @@ app.get("/p/:id", async (req, res) => {
 
   res.send(`<pre>${paste.content.replace(/</g, "&lt;")}</pre>`);
 });
+app.get("/api/debug", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({
+      status: "Server running",
+      db: "Connected",
+      base_url: process.env.BASE_URL,
+      node_env: process.env.NODE_ENV
+    });
+  } catch (err) {
+    console.error("DEBUG ERROR:", err);
+    res.status(500).json({
+      status: "Server running",
+      db: "FAILED",
+      error: err.message
+    });
+  }
+});
+
 
 const serverless = require("serverless-http");
 module.exports = serverless(app);
