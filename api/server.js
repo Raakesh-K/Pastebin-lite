@@ -1,19 +1,16 @@
-
 const express = require("express");
 const cors = require("cors");
 const pool = require("./db");
-
 const path = require("path");
-const app = express();
 
-
-
+const app = express();   // ✅ APP CREATED FIRST
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../Frontend")));
 
-// When user opens root URL, send index.html
+
+// ROOT
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../Frontend/index.html"));
 });
@@ -24,10 +21,12 @@ app.get("/api/healthz", async (req, res) => {
   try {
     await pool.query("SELECT 1");
     res.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ ok: false });
   }
 });
+
 
 // CREATE PASTE
 app.post("/api/pastes", async (req, res) => {
@@ -41,23 +40,13 @@ app.post("/api/pastes", async (req, res) => {
       [content, ttl_seconds || null, max_views || null]
     );
 
-    res.json({
-      url: `/p/${result.rows[0].id}`
-    });
+    res.json({ url: `/p/${result.rows[0].id}` });
 
   } catch (err) {
-    console.error("DB ERROR:", err);   // 🔥 THIS WILL SHOW IN VERCEL LOGS
+    console.error("DB ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
-
-
-
-
-
-
-
-
 
 
 // FETCH PASTE
@@ -85,11 +74,7 @@ app.get("/api/pastes/:id", async (req, res) => {
 });
 
 
-
-
-
-
-// VIEW PASTE HTML
+// VIEW PASTE
 app.get("/p/:id", async (req, res) => {
   try {
     const { rows } = await pool.query("SELECT * FROM pastes WHERE id=$1", [req.params.id]);
@@ -110,10 +95,4 @@ app.get("/p/:id", async (req, res) => {
   }
 });
 
-
-
-
-
-module.exports = app;
-
-
+module.exports = app;   // ✅ REQUIRED FOR VERCEL
