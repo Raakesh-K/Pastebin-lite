@@ -34,8 +34,8 @@ app.post("/api/pastes", async (req, res) => {
     const { content, ttl_seconds, max_views } = req.body;
 
     const result = await pool.query(
-      "INSERT INTO pastes (code, ttl, views) VALUES ($1, $2, 0) RETURNING id",
-      [content, ttl_seconds || null]
+      "INSERT INTO pastes (code, ttl, max_views) VALUES ($1, $2, $3) RETURNING id",
+      [content, ttl_seconds || null, max_views || null]
     );
 
     const pasteId = result.rows[0].id;
@@ -56,6 +56,8 @@ app.post("/api/pastes", async (req, res) => {
 
 
 
+
+
 // FETCH PASTE
 app.get("/api/pastes/:id", async (req, res) => {
   try {
@@ -67,12 +69,14 @@ app.get("/api/pastes/:id", async (req, res) => {
     const paste = rows[0];
     if (!paste) return res.status(404).json({ error: "Not found" });
 
+    if (paste.max_views && paste.views >= paste.max_views)
+      return res.status(403).json({ error: "View limit exceeded" });
+
     await pool.query("UPDATE pastes SET views = views + 1 WHERE id=$1", [paste.id]);
 
     res.json({
-      content: paste.code,   // ✅ correct column
-      views: paste.views + 1,
-      ttl: paste.ttl
+      content: paste.code,
+      remaining_views: paste.max_views ? paste.max_views - (paste.views + 1) : null
     });
 
   } catch (err) {
@@ -83,16 +87,18 @@ app.get("/api/pastes/:id", async (req, res) => {
 
 
 
+
+
 // VIEW PASTE HTML
 app.get("/p/:id", async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      "SELECT * FROM pastes WHERE id=$1",
-      [req.params.id]
-    );
-
+    const { rows } = await pool.query("SELECT * FROM pastes WHERE id=$1", [req.params.id]);
     const paste = rows[0];
+
     if (!paste) return res.status(404).send("Paste not found");
+
+    if (paste.max_views && paste.views >= paste.max_views)
+      return res.status(403).send("View limit exceeded");
 
     await pool.query("UPDATE pastes SET views = views + 1 WHERE id=$1", [paste.id]);
 
@@ -103,6 +109,8 @@ app.get("/p/:id", async (req, res) => {
     res.status(500).send("Error");
   }
 });
+
+
 
 
 module.exports = app;
