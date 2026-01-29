@@ -3,7 +3,7 @@ async function createPaste() {
   const ttl = document.getElementById("ttl").value;
   const views = document.getElementById("views").value;
 
-  const res = await fetch("http://localhost:3000/api/pastes", {
+  const res = await fetch(`${process.env.BASE_URL}/api/pastes`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

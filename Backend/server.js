@@ -9,12 +9,11 @@ const path = require("path");
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static("Frontend"));
 app.use(express.static(path.join(__dirname, "../Frontend")));
 
 // When user opens root URL, send index.html
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../rontend/index.html"));
+  res.sendFile(path.join(__dirname, "../Frontend/index.html"));
 });
 
 
