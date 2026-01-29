@@ -31,26 +31,27 @@ app.get("/api/healthz", async (req, res) => {
 // CREATE PASTE
 app.post("/api/pastes", async (req, res) => {
   try {
-    const { content, ttl, views } = req.body;
+    const { content, ttl_seconds, max_views } = req.body;
 
     const result = await pool.query(
       "INSERT INTO pastes (code, ttl, views) VALUES ($1, $2, $3) RETURNING id",
-      [content, ttl || null, views || null]
+      [content, ttl_seconds || null, max_views || null]
     );
 
     const pasteId = result.rows[0].id;
     const baseUrl = req.headers.origin;
 
-    res.json({
+    return res.json({
       id: pasteId,
       url: `${baseUrl}/p/${pasteId}`
     });
 
   } catch (err) {
-    console.error("DB ERROR:", err);
-    res.status(500).json({ error: err.message });
+    console.error("POST ERROR:", err);
+    return res.status(500).json({ error: "Insert failed" });
   }
 });
+
 
 
 
