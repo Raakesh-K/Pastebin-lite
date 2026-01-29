@@ -47,10 +47,11 @@ app.post("/api/pastes", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("POST ERROR:", err);
+    console.error("INSERT ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 
